@@ -60,13 +60,9 @@ function returnFnResult(fn) {
    console.log(f()); // выведет 13
  */
 function returnCounter(number = 0) {
-    let F = function() {
-        return ++F.num;
+    return function() {
+        return ++number;
     };
-
-    F.num = number;
-    
-    return F;
 }
 
 /*
@@ -100,11 +96,7 @@ function returnArgumentsArray() {
 function bindFunction(fn) {
     let args = Array.from(arguments).slice(1);
 
-    fn.bind(...args);
-
-    let F = fn.bind(null, ...args);
- 
-    return F;    
+    return fn.bind(null, ...args);
 }
 
 export {
