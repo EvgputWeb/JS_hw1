@@ -7,6 +7,9 @@
  Посмотрите как работает forEach и повторите это поведение для массива, который будет передан в параметре array
  */
 function forEach(array, fn) {
+    for (let i = 0; i < array.length; i++) {
+        fn(array[i], i, array);
+    }
 }
 
 /*
@@ -16,6 +19,13 @@ function forEach(array, fn) {
  Посмотрите как работает map и повторите это поведение для массива, который будет передан в параметре array
  */
 function map(array, fn) {
+    let resultArr = [];
+
+    for (let i = 0; i < array.length; i++) {
+        resultArr.push(fn(array[i], i, array));
+    }
+
+    return resultArr;
 }
 
 /*
@@ -25,6 +35,14 @@ function map(array, fn) {
  Посмотрите как работает reduce и повторите это поведение для массива, который будет передан в параметре array
  */
 function reduce(array, fn, initial) {
+    let curResult = initial || array[0];
+    let i = initial ? 0 : 1;
+
+    for (i; i < array.length; i++) {
+        curResult = fn(curResult, array[i], i, array);
+    }
+
+    return curResult;
 }
 
 /*
@@ -36,6 +54,15 @@ function reduce(array, fn, initial) {
    upperProps({ name: 'Сергей', lastName: 'Петров' }) вернет ['NAME', 'LASTNAME']
  */
 function upperProps(obj) {
+    let resultArr = [];
+
+    for (let prop in obj) {
+        if (obj.hasOwnProperty(prop)) {
+            resultArr.push(prop.toUpperCase());
+        }
+    }
+
+    return resultArr;
 }
 
 /*
@@ -45,6 +72,24 @@ function upperProps(obj) {
  Посмотрите как работает slice и повторите это поведение для массива, который будет передан в параметре array
  */
 function slice(array, from, to) {
+    if (((from === 0) && (to === 0 )) || (array.length === 0)) {
+        return [];
+    }
+    let resultArr = [];
+    let start = ~~from;
+    let end = ~~to;
+
+    start = (start >= 0) ? (start) : (array.length + start);
+    end = (end > 0) ? (end) : (array.length + end);
+
+    start = Math.min(Math.max(start, 0), array.length);
+    end = (end <= array.length) ? (end) : (array.length);
+
+    for (let i = start; i < end; i++) {
+        resultArr.push(array[i]);
+    }
+
+    return resultArr;
 }
 
 /*
