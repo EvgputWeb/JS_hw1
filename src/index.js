@@ -11,6 +11,11 @@
    createDivWithText('loftschool') // создаст элемент div, поместит в него 'loftschool' и вернет созданный элемент
  */
 function createDivWithText(text) {
+    const el = document.createElement('div');
+
+    el.textContent = text;
+
+    return el;
 }
 
 /*
@@ -22,6 +27,7 @@ function createDivWithText(text) {
    prepend(document.querySelector('#one'), document.querySelector('#two')) // добавит элемент переданный первым аргументом в начало элемента переданного вторым аргументом
  */
 function prepend(what, where) {
+    where.insertBefore(what, where.firstChild);
 }
 
 /*
@@ -44,6 +50,7 @@ function prepend(what, where) {
    findAllPSiblings(document.body) // функция должна вернуть массив с элементами div и span т.к. следующим соседом этих элементов является элемент с тегом P
  */
 function findAllPSiblings(where) {
+    return [...where.children].filter( item => item.nextElementSibling && item.nextElementSibling.matches('p') );
 }
 
 /*
@@ -64,13 +71,7 @@ function findAllPSiblings(where) {
    findError(document.body) // функция должна вернуть массив с элементами 'привет' и 'loftschool'
  */
 function findError(where) {
-    var result = [];
-
-    for (var child of where.childNodes) {
-        result.push(child.innerText);
-    }
-
-    return result;
+    return [...where.children].map( item => item.textContent );
 }
 
 /*
@@ -86,6 +87,19 @@ function findError(where) {
    должно быть преобразовано в <div></div><p></p>
  */
 function deleteTextNodes(where) {
+    let i;
+
+    loop:
+    for ( i = 0; i < where.childNodes.length; ) {
+        const child = where.childNodes[i];
+
+        if (child.nodeType === 3) { // текстовый узел
+            where.removeChild(child);
+            i = 0;
+            continue loop;
+        }
+        i++;
+    }
 }
 
 /*
@@ -100,6 +114,21 @@ function deleteTextNodes(where) {
    должно быть преобразовано в <span><div><b></b></div><p></p></span>
  */
 function deleteTextNodesRecursive(where) {
+    let i;
+
+    loop:
+    for ( i = 0; i < where.childNodes.length; ) {
+        const child = where.childNodes[i];
+
+        if (child.nodeType === 3) { // текстовый узел
+            where.removeChild(child);
+            i = 0;
+            continue loop;
+        } else if (child.nodeType === 1) { // Element-узел
+            deleteTextNodesRecursive(child);
+        }
+        i++;
+    }
 }
 
 /*
