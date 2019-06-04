@@ -151,7 +151,37 @@ function deleteTextNodesRecursive(where) {
      texts: 3
    }
  */
-function collectDOMStat(root) {
+function collectDOMStat(root, result) {
+
+    if (!result) {
+        result = {
+            tags: {},
+            classes: {},
+            texts: 0
+        }
+    }
+
+    for (let child of root.childNodes) {
+
+        if (child.nodeType === 3) { // текстовый узел
+            result.texts++;
+        } else if (child.nodeType === 1) { // Element-узел
+
+            [...child.classList].reduce( (res, cl) => {
+                res[cl] ? res[cl]++ : res[cl] = 1;
+
+                return res;
+            },
+            result.classes );
+
+            result.tags[child.tagName] ? result.tags[child.tagName]++ : result.tags[child.tagName] = 1;
+
+            collectDOMStat(child, result);
+        }
+
+    }
+
+    return result;
 }
 
 /*
@@ -187,6 +217,19 @@ function collectDOMStat(root) {
    }
  */
 function observeChildNodes(where, fn) {
+
+    const observer = new MutationObserver(function (mutations) {
+        mutations.forEach( mutation => {
+            if (mutation.addedNodes.length) {
+                fn( { type: 'insert', nodes: [...mutation.addedNodes] } );
+            }
+            if (mutation.removedNodes.length) {
+                fn( { type: 'remove', nodes: [...mutation.removedNodes] } );
+            }
+        })
+    });
+
+    observer.observe(where, { childList: true });
 }
 
 export {
