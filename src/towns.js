@@ -40,10 +40,11 @@ const homeworkContainer = document.querySelector('#homework-container');
 const townsUrl = 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json';
 
 function loadTowns() {
-    return new Promise( (resolve) => {
+    return new Promise( (resolve, reject) => {
         fetch(townsUrl)
             .then(response => response.json())
-            .then(cities => resolve(cities.sort((a, b) => a.name.localeCompare(b.name))));
+            .then(cities => resolve(cities.sort((a, b) => a.name.localeCompare(b.name))))
+            .catch(() => reject());
     });
 }
 
@@ -70,13 +71,17 @@ const filterBlock = homeworkContainer.querySelector('#filter-block');
 const filterInput = homeworkContainer.querySelector('#filter-input');
 /* Блок с результатами поиска */
 const filterResult = homeworkContainer.querySelector('#filter-result');
+/* Кнопка повтора */
+const reloadButton = homeworkContainer.querySelector('#reload-button');
 
 // const towns = [];
-const townsNames = [];
+let townsNames = [];
 
 function init() {
-    filterBlock.style.display = 'none';
     loadingBlock.style.display = 'block';
+    filterBlock.style.display = 'none';
+    reloadButton.style.display = 'none';
+    townsNames = [];
 
     loadTowns()
         .then( towns => {
@@ -85,13 +90,16 @@ function init() {
             for (const town of towns) {
                 townsNames.push(town.name);
             }
+        })
+        .catch ( () => {
+            loadingBlock.style.display = 'none';
+            reloadButton.style.display = 'block';
         });
-
 }
 
 init();
 
-filterInput.addEventListener('keyup', function() {
+filterInput.addEventListener('keyup', () => {
     if (filterInput.value === '') {
         filterResult.innerHTML = '';
 
@@ -107,6 +115,8 @@ filterInput.addEventListener('keyup', function() {
     }
     filterResult.innerHTML = str;
 });
+
+reloadButton.addEventListener('click', init);
 
 export {
     loadTowns,
