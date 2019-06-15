@@ -43,11 +43,92 @@ const addButton = homeworkContainer.querySelector('#add-button');
 // таблица со списком cookie
 const listTable = homeworkContainer.querySelector('#list-table tbody');
 
+listTable.innerHTML = '';
+
+// Массив, содержащий элементы tr
+let tableRows = [];
+
+/*
+ Функция добавления элемента в массив tableRows
+*/
+function addToTableRows(cookieName, cookieValue) {
+    for (let i = 0; i < tableRows.length; i++) {
+        const tr = tableRows[i];
+
+        if (tr.hasAttribute('data-cookie-name') && (tr.dataset.cookieName === cookieName)) {
+            // Заменяем содержимое
+            tr.setAttribute('data-cookie-value', cookieValue);
+            tr.innerHTML = `<td>${cookieName}</td><td>${cookieValue}</td><td><button>Удалить</button></td>`;
+
+            return;
+        }
+    }
+    // нет tr с такой кукой -> создаём
+    const tr = document.createElement('tr');
+
+    tr.setAttribute('data-cookie-name', cookieName);
+    tr.setAttribute('data-cookie-value', cookieValue);
+    tr.setAttribute('data-visible', 1);
+    tr.innerHTML = `<td>${cookieName}</td><td>${cookieValue}</td><td><button>Удалить</button></td>`;
+    tableRows.push(tr);
+}
+
+/*
+ Фильтрация массива по условию (устанавливает у элементов атрибут data-visible)
+*/
+function filterTableRows(str) {
+    if (str === '') {
+        tableRows.forEach( tr => tr.setAttribute('data-visible', 1) );
+
+        return;
+    }
+
+    tableRows.forEach( tr => {
+        ((tr.hasAttribute('data-cookie-name') && isMatching(tr.dataset.cookieName, str)) ||
+        (tr.hasAttribute('data-cookie-value') && isMatching(tr.dataset.cookieValue, str)) )
+            ?
+            tr.setAttribute('data-visible', 1) : tr.setAttribute('data-visible', 0);
+    });
+}
+
+/*
+ Функция отображения массива на странице
+*/
+function showTableRows() {
+    // сначала добавляем в documentFragment
+    const fragment = document.createDocumentFragment();
+
+    tableRows.forEach( tr => {
+        if (tr.hasAttribute('data-visible') && (tr.dataset.visible === '1')) {
+            fragment.appendChild(tr);
+        }
+    });
+
+    listTable.innerHTML = '';
+    listTable.appendChild(fragment);
+}
+
+/*
+ Функция удаления элемента из массива tableRows
+*/
+function removeFromTableRows(cookieName) {
+    for (let i = 0; i < tableRows.length; i++) {
+        const tr = tableRows[i];
+
+        if (tr.hasAttribute('data-cookie-name') && (tr.dataset.cookieName === cookieName)) {
+            tableRows.splice(i, 1);
+
+            return;
+        }
+    }
+}
+
 /*
  Обработчик строки фильтра
 */
-filterNameInput.addEventListener('keyup', function() {
-    // здесь можно обработать нажатия на клавиши внутри текстового поля для фильтрации cookie
+filterNameInput.addEventListener('keyup', () => {
+    filterTableRows(filterNameInput.value.trim());
+    showTableRows();
 });
 
 /*
@@ -57,34 +138,29 @@ addButton.addEventListener('click', () => {
     // здесь можно обработать нажатие на кнопку "добавить cookie"
     const cookieName = addNameInput.value.trim();
     const cookieValue = addValueInput.value.trim();
+    const filterStr = filterNameInput.value.trim();
 
     if (cookieName === '') {
         return;
     }
+
     // Добавляем в браузер
     setCookie(cookieName, cookieValue);
 
     // Добавляем в таблицу
-    const tr = listTable.querySelector(`tr[data-cookie-name="${cookieName}"]`);
+    addToTableRows(cookieName, cookieValue);
+    filterTableRows(filterStr);
+    showTableRows();
 
-    if (tr) { // уже есть кука с этим именем
-        // Заменяем содержимое
-        tr.innerHTML = `<td>${cookieName}</td><td>${cookieValue}</td><td><button>Удалить</button></td>`;
-
-    } else { // нет куки с этим именем
-        const tr = document.createElement('tr');
-
-        tr.setAttribute('data-cookie-name', cookieName);
-        tr.innerHTML = `<td>${cookieName}</td><td>${cookieValue}</td><td><button>Удалить</button></td>`;
-        listTable.appendChild(tr);
-    }
-    // Очищаем поля ввода
-    addNameInput.value = '';
-    addValueInput.value = '';
+    // Очищаем поля ввода (без таймаута тесты не проходят)
+    setTimeout(() => {
+        addNameInput.value = '';
+        addValueInput.value = '';
+    }, 100);
 });
 
 /*
- Обработчик кнопки "Удалить"
+ Обработчик кнопки "Удалить" - делегируем его элементу listTable, чтобы не вешать на каждую кнопку
 */
 listTable.addEventListener('click', (e) => {
     if ((e.target.tagName ==='BUTTON')
@@ -99,6 +175,7 @@ listTable.addEventListener('click', (e) => {
         setCookie(cookieName, '', { expires: -1 });
 
         // Удаляем строку из таблицы
+        removeFromTableRows(cookieName);
         tr.remove();
     }
 });
@@ -138,4 +215,11 @@ function setCookie(name, value, options) {
     }
 
     document.cookie = updatedCookie;
+}
+
+/*
+ Функция из прошлого ДЗ :)
+*/
+function isMatching(full, chunk) {
+    return full.toLowerCase().includes(chunk.toLowerCase());
 }
